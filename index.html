@@ -399,7 +399,13 @@
 <div class="doc-footer">© Scaling Minds</div>
 
 <script>
-  document.getElementById('signDate').value = new Date().toISOString().split('T')[0];
+  // Local date, not toISOString (which is UTC and shows tomorrow after 6pm Central)
+  (function () {
+    const d = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    document.getElementById('signDate').value =
+      d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  })();
 
   // Populate day dropdown
   const daySelect = document.getElementById('bdayDay');
