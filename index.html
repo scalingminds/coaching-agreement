@@ -156,6 +156,23 @@
   input.invalid { border-color: #c0392b; }
   .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .field-error { font-size: 12px; color: #c0392b; margin-top: 4px; display: none; }
+  .recording-choice {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    user-select: text;
+  }
+  .recording-choice label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--ink);
+    margin-bottom: 8px;
+    cursor: pointer;
+  }
+  .recording-choice label:last-of-type { margin-bottom: 0; }
+  .recording-choice input[type="radio"] { accent-color: var(--green); width: 16px; height: 16px; cursor: pointer; }
   .sig-hint-text {
     font-size: 12px;
     color: var(--muted);
@@ -301,6 +318,11 @@
     <div class="agreement-item" onclick="markRead(this,7)">
       <h3><span class="check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Sessions Are Recorded</h3>
       <p>I record our sessions for my notes only. Recordings are not shared with anyone. If at any point you want me to stop recording, just say so.</p>
+      <div class="recording-choice">
+        <label><input type="radio" name="recordingConsent" value="yes"> Yes, I agree to having our sessions recorded.</label>
+        <label><input type="radio" name="recordingConsent" value="no"> No, I'd prefer our sessions not be recorded.</label>
+        <div class="field-error" id="err-recording">Please choose one</div>
+      </div>
     </div>
   </div>
 
@@ -451,6 +473,13 @@
         err.style.display = 'none';
       }
     });
+    const recording = document.querySelector('input[name="recordingConsent"]:checked');
+    document.getElementById('err-recording').style.display = recording ? 'none' : 'block';
+    if (!recording) {
+      ok = false;
+      document.getElementById('err-recording').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
     if (!document.getElementById('consent').checked) {
       alert('Please check the consent box before submitting.');
       ok = false;
