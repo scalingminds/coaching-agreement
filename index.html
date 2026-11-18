@@ -319,8 +319,8 @@
       <h3><span class="check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Sessions Are Recorded</h3>
       <p>I record our sessions for my notes only. Recordings are not shared with anyone. If at any point you want me to stop recording, just say so.</p>
       <div class="recording-choice">
-        <label><input type="radio" name="recordingConsent" value="yes"> Yes, I agree to having our sessions recorded.</label>
-        <label><input type="radio" name="recordingConsent" value="no"> No, I'd prefer our sessions not be recorded.</label>
+        <label><input type="radio" form="agreementForm" name="recordingConsent" value="yes"> Yes, I agree to having our sessions recorded.</label>
+        <label><input type="radio" form="agreementForm" name="recordingConsent" value="no"> No, I'd prefer our sessions not be recorded.</label>
         <div class="field-error" id="err-recording">Please choose one</div>
       </div>
     </div>
@@ -501,12 +501,17 @@
     btn.textContent = 'Submitting…';
 
     const form = document.getElementById('agreementForm');
-    const data = new FormData(form);
+    const params = new URLSearchParams(new FormData(form));
+
+    // The recording radios sit up in the agreement list, outside the form element,
+    // so carry the answer across explicitly rather than relying on FormData.
+    const rec = document.querySelector('input[name="recordingConsent"]:checked');
+    if (rec) params.set('recordingConsent', rec.value);
 
     try {
       const res = await fetch(ENDPOINT, {
         method: 'POST',
-        body: new URLSearchParams(data).toString(),
+        body: params.toString(),
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
           'apikey': ANON_KEY,
