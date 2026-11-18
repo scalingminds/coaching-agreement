@@ -307,7 +307,7 @@
   <div class="form-section">
     <div class="section-label">Sign &amp; Submit</div>
 
-    <form id="agreementForm" name="coaching-agreement" action="/" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+    <form id="agreementForm" name="coaching-agreement" action="#" method="POST" onsubmit="return false;">
       <input type="hidden" name="form-name" value="coaching-agreement">
       <p hidden aria-hidden="true" style="display:none"><label>Don't fill this out if you're human: <input name="bot-field"></label></p>
 
@@ -452,6 +452,12 @@
     return ok;
   }
 
+  // Submissions go to the coaching-agreement Supabase edge function, which saves them
+  // to coaching_agreement_signatures and emails Andy. The key below is the public
+  // anon key, safe to ship in the page.
+  const ENDPOINT = 'https://rlooznqhjwgrukjozdfc.supabase.co/functions/v1/coaching-agreement';
+  const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJsb296bnFoandncnVram96ZGZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1NzQxMjQsImV4cCI6MjA5MDE1MDEyNH0.tQcI6a-Gtl3ZokCrHEiYgpXvCqpZz9a9saZWg0XfR6c';
+
   async function handleSubmit() {
     if (!validate()) return;
 
@@ -463,10 +469,14 @@
     const data = new FormData(form);
 
     try {
-      const res = await fetch('/', {
+      const res = await fetch(ENDPOINT, {
         method: 'POST',
         body: new URLSearchParams(data).toString(),
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'apikey': ANON_KEY,
+          'Authorization': 'Bearer ' + ANON_KEY
+        }
       });
 
       if (res.ok) {
@@ -479,7 +489,12 @@
       } else {
         btn.disabled = false;
         btn.textContent = 'Sign & Submit Agreement';
-        alert('Something went wrong. Please try again.');
+        let msg = 'Something went wrong. Please try again, or email andy@scalingminds.com.';
+        try {
+          const body = await res.json();
+          if (body && body.error) msg = body.error;
+        } catch (e) { /* keep the default message */ }
+        alert(msg);
       }
     } catch (e) {
       btn.disabled = false;
